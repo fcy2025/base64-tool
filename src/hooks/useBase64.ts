@@ -17,8 +17,6 @@ export interface UseBase64Return {
   isTTPlayback: boolean;
   error: string | null;
   viewMode: ViewMode;
-  roundTripMatch: boolean | null;
-  originalEncodedInput: string;
   initialInput: string;
   hasChanges: boolean;
   setInputText: (text: string) => void;
@@ -30,7 +28,6 @@ export interface UseBase64Return {
   copyToClipboard: () => Promise<void>;
   swapInputOutput: () => void;
   updateOutputBytes: (bytes: number[]) => void;
-  reEncodeFromBytes: () => void;
   restoreInitial: () => void;
 }
 
@@ -45,11 +42,8 @@ export const useBase64 = (): UseBase64Return => {
   const [isCustom, setIsCustom] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('structured');
-  const [originalEncodedInput, setOriginalEncodedInput] = useState('');
-  const [roundTripMatch, setRoundTripMatch] = useState<boolean | null>(null);
   const [initialInput, setInitialInput] = useState('');
   const [hasSetInitial, setHasSetInitial] = useState(false);
-  const [pendingReEncode, setPendingReEncode] = useState(false);
 
   const getCurrentTable = useCallback((): string => {
     if (isCustom && customTable && validateTable(customTable).valid) {
@@ -76,11 +70,6 @@ export const useBase64 = (): UseBase64Return => {
   }, [inputText, initialInput]);
 
   useEffect(() => {
-    if (pendingReEncode) {
-      setPendingReEncode(false);
-      return;
-    }
-
     setError(null);
     if (!inputText.trim()) {
       setOutputText('');
@@ -108,7 +97,6 @@ export const useBase64 = (): UseBase64Return => {
         setOutputBytes([]);
         setPaddingChar(null);
       } else {
-        // TT Playback 使用专用的位级解码器（ceil 逻辑，匹配 TT 源码 xH 函数）
         if (isTTPlayback()) {
           const ttBytes = base64ToBytes(cleanInput);
           setOutputBytes(ttBytes);
@@ -129,7 +117,7 @@ export const useBase64 = (): UseBase64Return => {
       setOutputBytes([]);
       setPaddingChar(null);
     }
-  }, [inputText, operation, getCurrentTable, isTTPlayback, pendingReEncode]);
+  }, [inputText, operation, getCurrentTable, isTTPlayback]);
 
   useEffect(() => {
     if (inputText.trim() && !hasSetInitial) {
@@ -159,62 +147,40 @@ export const useBase64 = (): UseBase64Return => {
     }
   }, [outputText]);
 
-  const performReEncode = useCallback((bytes: number[], originalInput: string) => {
-    if (bytes.length === 0) return;
-    try {
-      let cleanOriginal = originalInput.replace(/\s/g, '');
-
-      if (cleanOriginal.startsWith('https://')) {
-        const replayMatch = cleanOriginal.match(/replay=([^&]+)/);
-        if (replayMatch) {
-          cleanOriginal = decodeURIComponent(replayMatch[1]);
-        }
-      }
-
-      let encoded: string;
-
-      if (isTTPlayback()) {
-        encoded = replayBytesToBase64(bytes);
-      } else {
-        const currentTable = getCurrentTable();
-        const base64 = new Base64(currentTable);
-        encoded = base64.encodeFromBytes(bytes, cleanOriginal.length);
-
-        if (paddingChar && encoded.length === cleanOriginal.length) {
-          const resultArray = encoded.split('');
-          resultArray[resultArray.length - 1] = paddingChar;
-          encoded = resultArray.join('');
-        }
-      }
-
-      setOriginalEncodedInput(cleanOriginal);
-      setRoundTripMatch(cleanOriginal === encoded);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : '重新编码失败';
-      setError(message);
-    }
-  }, [getCurrentTable, isTTPlayback, paddingChar]);
-
   const updateOutputBytes = useCallback((bytes: number[]) => {
     setOutputBytes(bytes);
     const base64 = new Base64(getCurrentTable());
     setOutputText(base64.bytesToString(bytes));
     
     if (operation === 'decode') {
-      performReEncode(bytes, inputText);
-    }
-  }, [getCurrentTable, operation, inputText, performReEncode]);
+      let cleanInput = inputText.replace(/\s/g, '');
+      if (cleanInput.startsWith('https://')) {
+        const replayMatch = cleanInput.match(/replay=([^&]+)/);
+        if (replayMatch) {
+          cleanInput = decodeURIComponent(replayMatch[1]);
+        }
+      }
 
-  const reEncodeFromBytes = useCallback(() => {
-    if (outputBytes.length === 0) return;
-    performReEncode(outputBytes, inputText);
-  }, [outputBytes, inputText, performReEncode]);
+      let encoded: string;
+      if (isTTPlayback()) {
+        encoded = replayBytesToBase64(bytes);
+      } else {
+        encoded = base64.encodeFromBytes(bytes, cleanInput.length);
+        if (paddingChar && encoded.length === cleanInput.length) {
+          const resultArray = encoded.split('');
+          resultArray[resultArray.length - 1] = paddingChar;
+          encoded = resultArray.join('');
+        }
+      }
+
+      setInputText(encoded);
+      setHasSetInitial(false);
+    }
+  }, [getCurrentTable, operation, inputText, isTTPlayback, paddingChar]);
 
   const restoreInitial = useCallback(() => {
     if (initialInput) {
       setInputText(initialInput);
-      setRoundTripMatch(null);
-      setOriginalEncodedInput('');
       setHasSetInitial(false);
     }
   }, [initialInput]);
@@ -230,8 +196,6 @@ export const useBase64 = (): UseBase64Return => {
     isTTPlayback: isTTPlayback(),
     error,
     viewMode,
-    roundTripMatch,
-    originalEncodedInput,
     initialInput,
     hasChanges: hasChanges(),
     setInputText,
@@ -243,9 +207,8 @@ export const useBase64 = (): UseBase64Return => {
     copyToClipboard,
     swapInputOutput,
     updateOutputBytes,
-    reEncodeFromBytes,
     restoreInitial,
   };
-};
+}
 
 export { validateTable };

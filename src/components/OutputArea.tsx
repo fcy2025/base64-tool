@@ -13,11 +13,7 @@ interface OutputAreaProps {
   onSwap: () => void;
   onViewModeChange: (mode: ViewMode) => void;
   onUpdateBytes: (bytes: number[]) => void;
-  onReEncode: () => void;
   isDecodeMode: boolean;
-  roundTripMatch: boolean | null;
-  originalEncodedInput: string;
-  reEncodedInput: string;
   inputText: string;
   isTTPlayback: boolean;
 }
@@ -68,11 +64,7 @@ export const OutputArea = ({
   onSwap,
   onViewModeChange,
   onUpdateBytes,
-  onReEncode,
   isDecodeMode,
-  roundTripMatch,
-  originalEncodedInput,
-  reEncodedInput,
   inputText,
   isTTPlayback,
 }: OutputAreaProps) => {
@@ -103,10 +95,6 @@ export const OutputArea = ({
     const newBytes = hexStringToBytes(e.target.value);
     onUpdateBytes(newBytes);
   };
-
-  const handleReEncode = useCallback(() => {
-    onReEncode();
-  }, [onReEncode]);
 
   return (
     <div className="relative">
@@ -167,13 +155,6 @@ export const OutputArea = ({
                   </button>
                 )}
               </div>
-              <button
-                onClick={handleReEncode}
-                className="p-1.5 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-400 hover:text-amber-400"
-                title="重新编码"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
             </>
           )}
           {value && !error && (
@@ -226,33 +207,11 @@ export const OutputArea = ({
         )}
       </div>
       {isDecodeMode && !error && bytes.length > 0 && (
-        <div className="mt-2 space-y-2">
+        <div className="mt-2">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>提示: 切换到十六进制视图可查看和编辑原始字节</span>
             <span>{((bytes.filter(b => b >= 0x20 && b <= 0x7E).length / bytes.length) * 100).toFixed(1)}% 可打印字符</span>
           </div>
-          {roundTripMatch !== null && (
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-              roundTripMatch 
-                ? 'bg-green-500/20 border border-green-500/30' 
-                : 'bg-amber-500/20 border border-amber-500/30'
-            }`}>
-              {roundTripMatch ? (
-                <>
-                  <Check className="w-4 h-4 text-green-400" />
-                  <span className="text-xs text-green-400">编码往返匹配 ✓</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center">!</div>
-                  <span className="text-xs text-amber-400">编码往返不匹配</span>
-                  <span className="text-xs text-amber-300/70">
-                    原始: {originalEncodedInput.length} 字符 | 重新编码: {reEncodedInput.length} 字符
-                  </span>
-                </>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>

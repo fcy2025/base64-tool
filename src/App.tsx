@@ -17,8 +17,6 @@ export default function App() {
     isTTPlayback,
     error,
     viewMode,
-    roundTripMatch,
-    originalEncodedInput,
     hasChanges,
     setInputText,
     setOperation,
@@ -29,7 +27,6 @@ export default function App() {
     copyToClipboard,
     swapInputOutput,
     updateOutputBytes,
-    reEncodeFromBytes,
     restoreInitial,
   } = useBase64();
 
@@ -74,11 +71,7 @@ export default function App() {
                 onSwap={swapInputOutput}
                 onViewModeChange={setViewMode}
                 onUpdateBytes={updateOutputBytes}
-                onReEncode={reEncodeFromBytes}
                 isDecodeMode={operation === 'decode'}
-                roundTripMatch={roundTripMatch}
-                originalEncodedInput={originalEncodedInput}
-                reEncodedInput={inputText}
                 inputText={inputText}
                 isTTPlayback={isTTPlayback}
               />
