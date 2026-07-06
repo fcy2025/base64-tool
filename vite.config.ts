@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import tsconfigPaths from "vite-tsconfig-paths";
 import { traeBadgePlugin } from 'vite-plugin-trae-solo-badge';
 
-const base = process.env.VITE_BASE_PATH || '/';
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+const base = isGitHubPages ? '/base64-tool/' : (process.env.VITE_BASE_PATH || '/');
 
 export default defineConfig({
   server: {
