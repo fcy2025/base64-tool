@@ -25,6 +25,7 @@ export default function App() {
     setIsCustom,
     setViewMode,
     copyToClipboard,
+    copyInputToClipboard,
     swapInputOutput,
     updateOutputBytes,
     restoreInitial,
@@ -53,12 +54,14 @@ export default function App() {
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-gray-900/50 backdrop-blur-md border border-gray-800/50 rounded-2xl p-6 shadow-xl">
               <InputArea
-                value={inputText}
-                onChange={setInputText}
-                placeholder={operation === 'encode' ? '输入要编码的文本...' : '输入要解码的Base64文本...'}
-                hasChanges={hasChanges}
-                onRestore={restoreInitial}
-              />
+              value={inputText}
+              onChange={setInputText}
+              placeholder={operation === 'encode' ? '输入要编码的文本...' : '输入要解码的Base64文本...'}
+              hasChanges={hasChanges}
+              onRestore={restoreInitial}
+              onCopy={copyInputToClipboard}
+              isTTPlayback={isTTPlayback}
+            />
             </div>
 
             <div className="bg-gray-900/50 backdrop-blur-md border border-gray-800/50 rounded-2xl p-6 shadow-xl">

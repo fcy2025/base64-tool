@@ -26,6 +26,7 @@ export interface UseBase64Return {
   setIsCustom: (custom: boolean) => void;
   setViewMode: (mode: ViewMode) => void;
   copyToClipboard: () => Promise<void>;
+  copyInputToClipboard: () => Promise<void>;
   swapInputOutput: () => void;
   updateOutputBytes: (bytes: number[]) => void;
   restoreInitial: () => void;
@@ -141,6 +142,20 @@ export const useBase64 = (): UseBase64Return => {
     }
   }, [outputText]);
 
+  const copyInputToClipboard = useCallback(async () => {
+    if (!inputText) return;
+    try {
+      await navigator.clipboard.writeText(inputText);
+    } catch (e) {
+      const textarea = document.createElement('textarea');
+      textarea.value = inputText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  }, [inputText]);
+
   const swapInputOutput = useCallback(() => {
     if (outputText) {
       setInputText(outputText);
@@ -206,6 +221,7 @@ export const useBase64 = (): UseBase64Return => {
     setIsCustom,
     setViewMode,
     copyToClipboard,
+    copyInputToClipboard,
     swapInputOutput,
     updateOutputBytes,
     restoreInitial,

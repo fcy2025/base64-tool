@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Trash2, RotateCcw } from 'lucide-react';
+import { FileText, Trash2, RotateCcw, Copy, Check } from 'lucide-react';
 
 interface InputAreaProps {
   value: string;
@@ -7,13 +7,24 @@ interface InputAreaProps {
   placeholder: string;
   hasChanges?: boolean;
   onRestore?: () => void;
+  onCopy?: () => Promise<void>;
+  isTTPlayback?: boolean;
 }
 
-export const InputArea = ({ value, onChange, placeholder, hasChanges, onRestore }: InputAreaProps) => {
+export const InputArea = ({ value, onChange, placeholder, hasChanges, onRestore, onCopy, isTTPlayback }: InputAreaProps) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleClear = () => {
     onChange('');
+  };
+
+  const handleCopy = async () => {
+    if (onCopy) {
+      await onCopy();
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -32,6 +43,19 @@ export const InputArea = ({ value, onChange, placeholder, hasChanges, onRestore 
               title="还原到初始输入"
             >
               <RotateCcw className="w-4 h-4" />
+            </button>
+          )}
+          {isTTPlayback && value && onCopy && (
+            <button
+              onClick={handleCopy}
+              className={`p-1.5 rounded-lg transition-all ${
+                copied
+                  ? 'bg-green-500/20 text-green-400'
+                  : 'hover:bg-gray-800/50 text-gray-400 hover:text-indigo-400'
+              }`}
+              title="复制"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             </button>
           )}
           {value && (

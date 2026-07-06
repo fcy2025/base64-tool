@@ -166,17 +166,19 @@ export const OutputArea = ({
               >
                 <ArrowRightLeft className="w-4 h-4" />
               </button>
-              <button
-                onClick={handleCopy}
-                className={`p-1.5 rounded-lg transition-all ${
-                  copied
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'hover:bg-gray-800/50 text-gray-400 hover:text-indigo-400'
-                }`}
-                title="复制"
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              </button>
+              {!isTTPlayback && (
+                <button
+                  onClick={handleCopy}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    copied
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'hover:bg-gray-800/50 text-gray-400 hover:text-indigo-400'
+                  }`}
+                  title="复制"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              )}
             </>
           )}
         </div>
