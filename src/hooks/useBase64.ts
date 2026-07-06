@@ -62,6 +62,7 @@ export const useBase64 = (): UseBase64Return => {
       setViewMode('text');
     } else {
       setViewMode('structured');
+      setOperation('decode');
     }
   }, [isTTPlayback]);
 
